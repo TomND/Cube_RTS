@@ -45,7 +45,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\AI\BasicFollow.cs" />
+     <Compile Include="Assets\Scripts\AI\BasicMove.cs" />
+     <Compile Include="Assets\Scripts\AI\Cube.cs" />
+     <Compile Include="Assets\Scripts\AI\CubeController.cs" />
      <Compile Include="Assets\Scripts\Player Controller\CameraControl.cs" />
+     <Compile Include="Assets\Scripts\Player Controller\UnitControl.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

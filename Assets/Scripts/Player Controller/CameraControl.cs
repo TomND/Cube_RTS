@@ -74,7 +74,6 @@ public class CameraControl : MonoBehaviour
    {
       MoveControls();
       CameraTiltControlDeveloper();
-      //print(Input.GetAxis("Mouse X") + transform.eulerAngles.y* tiltSpeed);
    }
 
    void MoveControls()
@@ -139,7 +138,7 @@ public class CameraControl : MonoBehaviour
        * using mouse X and mouse Y.
        *
        */
-      if(Input.GetButton("Fire2")){
+      if(Input.GetButton("MiddleMouseClick")){
          float      tiltAroundY = Input.GetAxis("Mouse X") * tiltSpeed * Time.deltaTime;
          float      tiltAroundX = -Input.GetAxis("Mouse Y") * tiltSpeed * Time.deltaTime;
          Quaternion target      = Quaternion.Euler(transform.eulerAngles.x + tiltAroundX, transform.eulerAngles.y + tiltAroundY, 0);
@@ -155,7 +154,7 @@ public class CameraControl : MonoBehaviour
        */
       heightManager();
       HeightRotationManager();
-      if(Input.GetButton("Fire2")){
+      if(Input.GetButton("MiddleMouseClick")){
          float      tiltAroundY = Input.GetAxis("Mouse X") * tiltSpeed * Time.deltaTime;
          Quaternion target      = Quaternion.Euler(0, transform.eulerAngles.y + tiltAroundY, 0);
          transform.rotation = Quaternion.Slerp(transform.rotation, target, tiltSmooth);
@@ -169,7 +168,6 @@ public class CameraControl : MonoBehaviour
        * Mouse ScrollWheel changes value of currentHeight,
        * while raycast mantains currentHeight at a smooth rate
        */
-      print(Input.GetAxis("Mouse ScrollWheel"));
       if(Input.GetAxis("Mouse ScrollWheel") < 0){
          currentHeight = Mathf.Lerp(currentHeight, minHeight, -Input.GetAxis("Mouse ScrollWheel") * Time.deltaTime * 100);
          }
