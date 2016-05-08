@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Cube : MonoBehaviour
 {
@@ -37,6 +38,12 @@ public class Cube : MonoBehaviour
    private GameObject targetObject;
    private float      targetDistanceGoal = 2;
    private bool       debug = false;
+   public float       shootDistance;
+   public float       fireRate;
+   private float      nextFire = 0;
+   public float       teamNumber;
+   public float       health;
+   private GameObject shootTarget;
 
    // Use this for initialization
    void Start()
@@ -48,6 +55,51 @@ public class Cube : MonoBehaviour
    void Update()
    {
       ManageGoals();
+   }
+
+   public bool CheckIfHaveTarget()
+   {
+      return(!(targetObject == null));
+   }
+
+   public float GetTeamNumber()
+   {
+      return(teamNumber);
+   }
+
+   void Death(Vector3 vel = default(Vector3))
+   {
+      gameObject.GetComponent <BoxCollider>().enabled  = false;
+      gameObject.GetComponent <MeshRenderer>().enabled = false;
+      GameObject        deathCube = (GameObject)Resources.Load("DeathCube");
+      List <GameObject> cubes     = new List <GameObject>();
+      deathCube.GetComponent <MeshRenderer>().material = GetComponent <MeshRenderer>().material;
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(0.25f, -0.25f, 0.25f), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(0.5f, -0.25f, -0.25f), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(-0.25f, -0.25f, 0.25f), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(-0.25f, -0.25f, 0.25f), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(-0.25f, 0.25f, 0.25f), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(0.25f, 0.25f, 0.25f), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(0.25f, 0.25f, 0.25f), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(-0.25f, 0.25f, -0.25f), Quaternion.identity));
+      foreach(GameObject cube in cubes){
+          cube.GetComponent <Rigidbody>().AddForce(vel * 10);
+          //cube.GetComponent<Cube>().teamNumber = teamNumber;
+          }
+      Destroy(gameObject);
+   }
+
+   public void TakeDamage(float damage, Vector3 vel = default(Vector3))
+   {
+      health -= damage;
+      if(health <= 0){
+         Death(vel);
+         }
+   }
+
+   public float GetHealth()
+   {
+      return(health);
    }
 
    public void SetUnitTarget(GameObject tarObj)
@@ -63,6 +115,7 @@ public class Cube : MonoBehaviour
 
       targetObject = tarObj;
       target       = tarObj.transform.position;
+      shootTarget  = targetObject;
    }
 
    public void SetFloorTarget(GameObject tarObj, Vector3 tarVec)
@@ -89,24 +142,95 @@ public class Cube : MonoBehaviour
       debug = option;
    }
 
+   private float DistanceToTarget()
+   {
+      float distance = Vector3.Distance(transform.position, target);
+
+      return(distance);
+   }
+
    void ManageGoals()
    {
       /*
        * Sets the cubes goals, including movement and shooting goals.
        */
-
-      if(targetObject != null){
-         if(Vector3.Distance(transform.position, target) < targetDistanceGoal){
-            targetObject = null;
-            }
-         else{
-             Move();
-             }
+      if(targetObject == gameObject){
+         targetObject = null;
          }
 
-      /*
-       * INSERT SHOOTING CODE HERE
-       */
+      if(targetObject != null){
+         if(TargetIsUnit()){
+            if(DistanceToTarget() > shootDistance){
+               Move();
+               }
+            }
+         else{
+             if(DistanceToTarget() > targetDistanceGoal){
+                Move();
+                }
+             }
+
+
+         /*
+          * INSERT SHOOTING CODE HERE
+          */
+
+         if(shootTarget != null){
+            ManageCombat();
+            }
+         }
+   }
+
+   bool TargetIsUnit()
+   {
+      if(targetObject.tag == "Unit"){
+         return(true);
+         }
+      else{
+          return(false);
+          }
+   }
+
+   void ManageCombat()
+   {
+      if(DistanceToTarget() < shootDistance){
+         if(targetObject.tag == "Unit"){
+            Shoot();
+            }
+         if(IsOtherDead(shootTarget)){
+            shootTarget = null;
+            }
+         }
+   }
+
+   private bool IsOtherDead(GameObject other)
+    {
+        print(other.gameObject);
+        if(other.GetComponent <Cube>().GetHealth() <= 0){
+         return(true);
+         }
+      else{
+          return(false);
+          }
+   }
+
+   void Shoot()
+   {
+      if(Time.time > nextFire){
+         nextFire = Time.time + fireRate;
+
+         Quaternion direction;
+         Vector3    angle = shootTarget.transform.position - transform.position;
+         Vector3    laserForceDirection = shootTarget.transform.position - transform.position;
+         laserForceDirection.Normalize();
+         direction = Quaternion.LookRotation(shootTarget.transform.position - transform.position);
+         GameObject laser     = (GameObject)Instantiate(Resources.Load("Laser"), transform.position, direction);
+         Laser      laserProp = laser.GetComponent <Laser>();
+         laserProp.SetSpawner(gameObject);
+         Rigidbody laserRig = laser.GetComponent <Rigidbody>();
+         laserRig.AddForce(laserForceDirection * laserProp.GetSpeed());
+         //laser.transform.LookAt(targetObject.transform);
+         }
    }
 
    void Move()
@@ -157,7 +281,7 @@ public class Cube : MonoBehaviour
    Vector3 PickFace()
    {
       /*
-       *Finds the face of the cube that is closest to the target, and chooses that face
+       * Finds the face of the cube that is closest to the target, and chooses that face
        *@rtype: Vector3
        */
       float right    = Vector3.Distance(transform.position + transform.right * 10, target);
@@ -199,13 +323,13 @@ public class Cube : MonoBehaviour
    }
 
    float SmallestAngle(float[] angles)
-    {
-        /*
-				Takes a list of floats and returns the smallest value
-				@type float[]: angles
-						a list of floats representing angles
-        */
-        float smallest = angles[0];
+   {
+      /*
+       *                      Takes a list of floats and returns the smallest value
+       *                      @type float[]: angles
+       *                                      a list of floats representing angles
+       */
+      float smallest = angles[0];
 
       for(int i = 0; i < angles.Length; i++){
           if(angles[i] < smallest){

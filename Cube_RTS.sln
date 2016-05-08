@@ -1,6 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2008
 
+Project("{BBCF1859-8232-3FD2-11A7-5CAC08D8D770}") = "Cube_RTS", "Assembly-CSharp-firstpass.csproj", "{1861EEFB-7FD6-D129-C84A-4EAD2DB457B6}"
+EndProject
 Project("{BBCF1859-8232-3FD2-11A7-5CAC08D8D770}") = "Cube_RTS", "Assembly-CSharp.csproj", "{06604717-9274-D424-C07E-339419A5C691}"
 EndProject
 Project("{BBCF1859-8232-3FD2-11A7-5CAC08D8D770}") = "Cube_RTS", "Assembly-CSharp-Editor.csproj", "{5B9391A8-FDBA-0F8F-0D70-3B39EC3154A9}"
@@ -11,6 +13,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1861EEFB-7FD6-D129-C84A-4EAD2DB457B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1861EEFB-7FD6-D129-C84A-4EAD2DB457B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1861EEFB-7FD6-D129-C84A-4EAD2DB457B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1861EEFB-7FD6-D129-C84A-4EAD2DB457B6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{06604717-9274-D424-C07E-339419A5C691}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{06604717-9274-D424-C07E-339419A5C691}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06604717-9274-D424-C07E-339419A5C691}.Release|Any CPU.ActiveCfg = Release|Any CPU

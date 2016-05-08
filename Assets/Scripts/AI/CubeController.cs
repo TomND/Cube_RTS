@@ -17,10 +17,14 @@ public class CubeController : MonoBehaviour
     */
 
    private List <Cube> cubes = new List <Cube>();
-   public bool         debug;
+    public bool debug;
+    private LayerMask mask;
 
-   // Update is called once per frame
-   void Update()
+    void Start(){
+        mask = ~(1 << 8);
+    }
+    // Update is called once per frame
+    void Update()
    {
       SelectorManager();
    }
@@ -47,7 +51,7 @@ public class CubeController : MonoBehaviour
          Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
          RaycastHit hit;
-         if(Physics.Raycast(ray, out hit, 100)){
+         if(Physics.Raycast(ray, out hit, 100,mask)){
             GameObject hitObj = hit.collider.gameObject;
             if(hit.collider.gameObject.tag == "Unit"){
                CubeListManager(hitObj.GetComponent <Cube>());
@@ -84,7 +88,7 @@ public class CubeController : MonoBehaviour
          Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
          RaycastHit hit;
-         if(Physics.Raycast(ray, out hit, 100)){
+         if(Physics.Raycast(ray, out hit, 100,mask)){
             GameObject hitObj = hit.collider.gameObject;
             if(hit.collider.gameObject.tag == "Unit"){
                foreach(Cube subCube in cubes){
