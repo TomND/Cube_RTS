@@ -8,7 +8,7 @@ public class CubeCleanUp : MonoBehaviour {
    // Use this for initialization
    void Start()
     {
-        cleanTime = Random.Range(4, 7);
+        cleanTime = Random.Range(0.5f,1.5f);
         startTime = Time.time;
    }
 

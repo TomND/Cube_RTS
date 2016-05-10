@@ -3,12 +3,14 @@ using System.Collections;
 
 public class CubeAreaDetection : MonoBehaviour
 {
-   Cube cube;
+   Cube       cube;
+   CubeCombat cubeCombat;
 
    // Use this for initialization
    void Start()
    {
-      cube = GetComponent <Cube>();
+      cube       = GetComponent <Cube>();
+      cubeCombat = GetComponent <CubeCombat>();
    }
 
    // Update is called once per frame
@@ -18,17 +20,19 @@ public class CubeAreaDetection : MonoBehaviour
 
    void OnTriggerStay(Collider other)
    {
-      if(cube.CheckIfHaveTarget() == false){
-         if(IsValidTarget(other)){
-            cube.SetUnitTarget(other.transform.parent.gameObject);
+      if(this.enabled){
+         if(cubeCombat.CheckIfHaveTarget() == false){
+            if(IsValidTarget(other)){
+               cube.SetUnitTarget(other.transform.gameObject);
+               }
             }
          }
    }
 
    bool IsValidTarget(Collider other)
    {
-      if(other.GetType() == typeof(SphereCollider) && other.tag == "UnitTrigger"){
-         if(other.GetComponentInParent <Cube>().GetTeamNumber() != cube.GetTeamNumber()){
+      if(other.GetType() == typeof(BoxCollider) && other.tag == "Unit"){
+         if(other.GetComponent <Cube>().GetTeamNumber() != cube.GetTeamNumber()){
             return(true);
             }
          else{

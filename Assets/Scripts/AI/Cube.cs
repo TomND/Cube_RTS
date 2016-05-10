@@ -5,83 +5,195 @@ using System.Collections.Generic;
 public class Cube : MonoBehaviour
 {
    /*
-    *          Cube object. Contains all properties of a cubes. Manages Movement, shooting,
-    *          and all other potential tasks that cubes do.
+    *          Cube object. Manages all propoerties of cubes. The central brain so to speak.
     *
     *
     *          === Attributes ===
     *
-    *          @type Rigidbody: rb
-    *                                  The Rigidbody of the cube
-    *          @type float: force
-    *                                  Force applied to the cube to move
-    *          @type Vector3: target
-    *                                  The Vector3 position of the target
-    *          @type float: targetVelocity
-    *                                  The max velocity to move to the target at
-    *          @type float: targetAcceleration
-    *                                  The acceleration at which to move towards the target at
     *          @type GameObject: targetObject
-    *                                  The gameObject of the target
-    *          @type float: targetDistanceGoal
-    *                                  The distance to the target at which the cube stops applying force
+    *                                  The Target to move towards
     *          @type bool: debug
     *                                  Sets whether to enable/disable debug tools
+    *          @type float: teamNumber
+    *                                  The Cubes Team
+    *          @type float: health
+    *                                  Cubes health. dead when <= 0
+    *          @type CubeMovement: cubeMovement
+    *                                  CubeMovement Game object
+    *          @type CubeCombat: cubeCombat
+    *                                  cubeCombat game object.
     */
 
 
-   private Rigidbody  rb;
-   public float       force;
-   private Vector3    target = new Vector3(0, 0, 0);
-   public float       targetVelocity;
-   public float       targetAcceleration;
-   private GameObject targetObject;
-   private float      targetDistanceGoal = 2;
-   private bool       debug = false;
-   public float       shootDistance;
-   public float       fireRate;
-   private float      nextFire = 0;
-   public float       teamNumber;
-   public float       health;
-   private GameObject shootTarget;
+   private GameObject        targetObject;
+   private bool              debug = false;
+   public int                teamNumber;
+   public float              health;
+   private CubeMovement      cubeMovement;
+   private CubeCombat        CubeCombat;
+    private List<GameObject> subCubes = new List<GameObject>();
+    public bool boom;
 
-   // Use this for initialization
-   void Start()
+    // Use this for initialization
+    void Start()
    {
-      rb = gameObject.GetComponent <Rigidbody>();
+      cubeMovement = GetComponent <CubeMovement>();
+      CubeCombat   = GetComponent <CubeCombat>();
    }
 
    // Update is called once per frame
-   void Update()
+   void FixedUpdate()
    {
-      ManageGoals();
+        ManageGoals();
    }
 
-   public bool CheckIfHaveTarget()
-   {
-      return(!(targetObject == null));
-   }
 
-   public float GetTeamNumber()
+   public int GetTeamNumber()
    {
+      /* returns the teamnumber
+       */
       return(teamNumber);
+   }
+
+   public void SetTeamNumber(int t)
+   {
+      teamNumber = t;
+   }
+
+   void GetSubCubes()
+   {
+      subCubes = new List <GameObject>();
+      for(int i = 0; i < 8; i++){
+          subCubes.Add(CubePool.RemoveFromPool());
+          }
+      //gameObject.SetActive(false);
+   }
+
+   void PrepSubCubesDefaults()
+   {
+      foreach(GameObject sub in subCubes){
+          sub.GetComponent <BoxCollider>().enabled  = true;
+          sub.GetComponent <MeshRenderer>().enabled = true;
+          Cube c = sub.GetComponent <Cube>();
+          c.health = 100;     // TODO: Make this into a method
+          c.SetTeamNumber(GetTeamNumber());
+          sub.GetComponent <MeshRenderer>().material = gameObject.GetComponent <MeshRenderer>().material;
+          sub.GetComponent <CubeCombat>().SetupRadius();
+          sub.transform.localScale = gameObject.transform.localScale / 2;
+          }
+   }
+
+   void PrepDeathSubCube()
+   {
+      foreach(GameObject sub in subCubes){
+          foreach(MonoBehaviour mono in sub.GetComponents <MonoBehaviour>()){
+              mono.enabled = false;
+              }
+
+          sub.layer = 9;
+          sub.GetComponent <CubeCleanUp>().enabled = true;
+          sub.tag = "Untagged";
+          //sub.GetComponent <BoxCollider>().enabled = false;  // temp and temp below
+          sub.GetComponentInChildren <SphereCollider>().enabled = false;
+          }
+   }
+
+   void PrepRegularSubCube()
+   {
+      foreach(GameObject sub in subCubes){
+          foreach(MonoBehaviour mono in sub.GetComponents <MonoBehaviour>()){
+              mono.enabled = true;
+              }
+          sub.layer = 10;
+          sub.tag   = "Unit";
+          sub.GetComponent <CubeCleanUp>().enabled = false;
+          }
+   }
+
+   void PositionSubCubes(float pos)
+   {
+      subCubes[0].transform.position = transform.position + new Vector3(pos, pos, pos);
+      subCubes[1].transform.position = transform.position + new Vector3(pos, -pos, pos);
+      subCubes[2].transform.position = transform.position + new Vector3(pos, pos, -pos);
+      subCubes[3].transform.position = transform.position + new Vector3(pos, -pos, -pos);
+      subCubes[4].transform.position = transform.position + new Vector3(-pos, pos, pos);
+      subCubes[5].transform.position = transform.position + new Vector3(-pos, -pos, pos);
+      subCubes[6].transform.position = transform.position + new Vector3(-pos, pos, -pos);
+      subCubes[7].transform.position = transform.position + new Vector3(-pos, -pos, -pos);
+   }
+
+   void EnableSubCubes()
+   {
+      foreach(GameObject sub in subCubes){
+          if(sub.tag == "Unit"){
+             sub.SetActive(true);
+             }
+          else{
+              //subCubes[0].SetActive(true);
+              subCubes[3].SetActive(true);
+              subCubes[5].SetActive(true);
+              }
+          }
+   }
+
+   void GiveSubsVelocity(Vector3 vel = default(Vector3))
+   {
+      foreach(GameObject sub in subCubes){
+          sub.GetComponent <Rigidbody>().AddForce(vel * 10);
+          //cube.GetComponent<Cube>().teamNumber = teamNumber;
+          }
    }
 
    void Death(Vector3 vel = default(Vector3))
    {
       gameObject.GetComponent <BoxCollider>().enabled  = false;
       gameObject.GetComponent <MeshRenderer>().enabled = false;
-      GameObject        deathCube = (GameObject)Resources.Load("DeathCube");
-      List <GameObject> cubes     = new List <GameObject>();
-      deathCube.GetComponent <MeshRenderer>().material = GetComponent <MeshRenderer>().material;
-      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(0.25f, -0.25f, 0.25f), Quaternion.identity));
-      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(0.5f, -0.25f, -0.25f), Quaternion.identity));
-      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(-0.25f, -0.25f, 0.25f), Quaternion.identity));
-      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(-0.25f, -0.25f, 0.25f), Quaternion.identity));
-      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(-0.25f, 0.25f, 0.25f), Quaternion.identity));
-      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(0.25f, 0.25f, 0.25f), Quaternion.identity));
-      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(0.25f, 0.25f, 0.25f), Quaternion.identity));
-      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(-0.25f, 0.25f, -0.25f), Quaternion.identity));
+      float   newScale       = transform.localScale.x / 2;
+      Vector3 newVectorScale = transform.localScale / 2;
+      GetSubCubes();
+      PrepSubCubesDefaults();
+      if(newScale < 1){
+         PrepDeathSubCube();
+         }
+      else{
+          PrepRegularSubCube();
+          }
+      PositionSubCubes(newScale);
+      EnableSubCubes();
+      CubePool.AddToPool(gameObject);
+      GiveSubsVelocity(vel);
+   }
+
+   void DeathOld(Vector3 vel = default(Vector3))
+   {
+      gameObject.GetComponent <BoxCollider>().enabled  = false;
+      gameObject.GetComponent <MeshRenderer>().enabled = false;
+      float      newScale       = transform.localScale.x / 2;
+      Vector3    newVectorScale = transform.localScale / 2;
+      GameObject deathCube;
+      if(newScale < 1){
+         deathCube = (GameObject)Resources.Load("DeathCube");
+         deathCube.transform.localScale = newVectorScale;
+         deathCube.GetComponent <MeshRenderer>().material = GetComponent <MeshRenderer>().material;
+         deathCube.layer = 9;
+         }
+      else{
+          deathCube = gameObject;
+          deathCube.GetComponent <BoxCollider>().enabled  = true;
+          deathCube.GetComponent <MeshRenderer>().enabled = true;
+          deathCube.GetComponent <Cube>().health          = 100; // TODO: Make this into a method
+          deathCube.transform.localScale = deathCube.transform.localScale / 2;
+          deathCube.layer = 10;
+          }
+      List <GameObject> cubes = new List <GameObject>();
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(newScale, newScale, newScale), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(newScale, -newScale, newScale), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(newScale, newScale, -newScale), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(newScale, -newScale, -newScale), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(-newScale, newScale, newScale), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(-newScale, -newScale, newScale), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(-newScale, newScale, -newScale), Quaternion.identity));
+      cubes.Add((GameObject)Instantiate(deathCube, transform.position + new Vector3(-newScale, -newScale, -newScale), Quaternion.identity));
       foreach(GameObject cube in cubes){
           cube.GetComponent <Rigidbody>().AddForce(vel * 10);
           //cube.GetComponent<Cube>().teamNumber = teamNumber;
@@ -114,8 +226,8 @@ public class Cube : MonoBehaviour
        */
 
       targetObject = tarObj;
-      target       = tarObj.transform.position;
-      shootTarget  = targetObject;
+      cubeMovement.GetTarget(tarObj.transform.position);
+      CubeCombat.SetShootTarget(targetObject);
    }
 
    public void SetFloorTarget(GameObject tarObj, Vector3 tarVec)
@@ -128,7 +240,7 @@ public class Cube : MonoBehaviour
        *       The Target Vector3 position
        */
       targetObject = tarObj;
-      target       = tarVec;
+      cubeMovement.GetTarget(tarVec);
    }
 
    public void SetDebug(bool option)
@@ -142,9 +254,9 @@ public class Cube : MonoBehaviour
       debug = option;
    }
 
-   private float DistanceToTarget()
+   public float DistanceToTarget(GameObject target)
    {
-      float distance = Vector3.Distance(transform.position, target);
+      float distance = Vector3.Distance(transform.position, target.transform.position);
 
       return(distance);
    }
@@ -154,93 +266,40 @@ public class Cube : MonoBehaviour
       /*
        * Sets the cubes goals, including movement and shooting goals.
        */
+
       if(targetObject == gameObject){
          targetObject = null;
          }
 
       if(targetObject != null){
-         if(TargetIsUnit()){
-            if(DistanceToTarget() > shootDistance){
-               Move();
+         if(TargetIsUnit(targetObject)){
+            if(DistanceToTarget(targetObject) > CubeCombat.GetShootDistance()){
+               cubeMovement.Move();
                }
             }
          else{
-             if(DistanceToTarget() > targetDistanceGoal){
-                Move();
+             if(DistanceToTarget(targetObject) > cubeMovement.GetTargetDistance()){
+                cubeMovement.Move();
                 }
              }
-
 
          /*
           * INSERT SHOOTING CODE HERE
           */
 
-         if(shootTarget != null){
-            ManageCombat();
-            }
+
+         CubeCombat.ManageCombat();
          }
    }
 
-   bool TargetIsUnit()
+   public bool TargetIsUnit(GameObject targ)
    {
-      if(targetObject.tag == "Unit"){
+      if(targ.tag == "Unit"){
          return(true);
          }
       else{
           return(false);
           }
-   }
-
-   void ManageCombat()
-   {
-      if(DistanceToTarget() < shootDistance){
-         if(targetObject.tag == "Unit"){
-            Shoot();
-            }
-         if(IsOtherDead(shootTarget)){
-            shootTarget = null;
-            }
-         }
-   }
-
-   private bool IsOtherDead(GameObject other)
-    {
-        print(other.gameObject);
-        if(other.GetComponent <Cube>().GetHealth() <= 0){
-         return(true);
-         }
-      else{
-          return(false);
-          }
-   }
-
-   void Shoot()
-   {
-      if(Time.time > nextFire){
-         nextFire = Time.time + fireRate;
-
-         Quaternion direction;
-         Vector3    angle = shootTarget.transform.position - transform.position;
-         Vector3    laserForceDirection = shootTarget.transform.position - transform.position;
-         laserForceDirection.Normalize();
-         direction = Quaternion.LookRotation(shootTarget.transform.position - transform.position);
-         GameObject laser     = (GameObject)Instantiate(Resources.Load("Laser"), transform.position, direction);
-         Laser      laserProp = laser.GetComponent <Laser>();
-         laserProp.SetSpawner(gameObject);
-         Rigidbody laserRig = laser.GetComponent <Rigidbody>();
-         laserRig.AddForce(laserForceDirection * laserProp.GetSpeed());
-         //laser.transform.LookAt(targetObject.transform);
-         }
-   }
-
-   void Move()
-   {
-      /*
-       * Manages movement by setting direction and calling ManageForce()
-       */
-      Vector3 direction = PickFace();
-
-      ManageForce(direction);
    }
 
    void DebugRays(Vector3 direction)
@@ -258,84 +317,5 @@ public class Cube : MonoBehaviour
       Debug.DrawRay(transform.position, transform.up * 10, Color.white);
       Debug.DrawRay(transform.position, -transform.up * 10, Color.red);
       Debug.DrawRay(transform.position, direction * 20, Color.green);
-   }
-
-   void ManageForce(Vector3 direction)
-   {
-      /*
-       *                      Manages the force applied to the cube
-       *                      @type Vector3: direction
-       *                                              The direction that force should be applied to.
-       */
-      direction.Normalize();
-      if(rb.velocity.magnitude - targetVelocity < -0.5){
-         direction = Vector3.Lerp(direction, direction * force, targetAcceleration);
-         rb.AddForce(direction, ForceMode.Acceleration);
-         }
-      else if(rb.velocity.magnitude - targetVelocity > 0.5){
-              direction = Vector3.Lerp(direction, direction.normalized, targetAcceleration);
-              rb.AddForce(direction, ForceMode.Acceleration);
-              }
-   }
-
-   Vector3 PickFace()
-   {
-      /*
-       * Finds the face of the cube that is closest to the target, and chooses that face
-       *@rtype: Vector3
-       */
-      float right    = Vector3.Distance(transform.position + transform.right * 10, target);
-      float left     = Vector3.Distance(transform.position + -transform.right * 10, target);
-      float forward  = Vector3.Distance(transform.position + transform.forward * 10, target);
-      float backward = Vector3.Distance(transform.position + -transform.forward * 10, target);
-      float up       = Vector3.Distance(transform.position + transform.up * 10, target);
-      float down     = Vector3.Distance(transform.position + -transform.up * 10, target);
-
-      float[] directions =
-      {
-         right, left, forward, backward, up, down
-      };
-
-      float smallest = SmallestAngle(directions);
-
-      if(smallest == right){
-         return(transform.right);
-         }
-      else if(smallest == left){
-              return(-transform.right);
-              }
-      else if(smallest == forward){
-              return(transform.forward);
-              }
-      else if(smallest == backward){
-              return(-transform.forward);
-              }
-      else if(smallest == up){
-              return(transform.up);
-              }
-      else if(smallest == down){
-              return(-transform.up);
-              }
-      else{
-          print("NON SENSE");
-          return(new Vector3(0, 0, 0));
-          }
-   }
-
-   float SmallestAngle(float[] angles)
-   {
-      /*
-       *                      Takes a list of floats and returns the smallest value
-       *                      @type float[]: angles
-       *                                      a list of floats representing angles
-       */
-      float smallest = angles[0];
-
-      for(int i = 0; i < angles.Length; i++){
-          if(angles[i] < smallest){
-             smallest = angles[i];
-             }
-          }
-      return(smallest);
    }
 }

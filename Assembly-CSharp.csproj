@@ -45,13 +45,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\AI\BasicFollow.cs" />
-     <Compile Include="Assets\Scripts\AI\BasicMove.cs" />
      <Compile Include="Assets\Scripts\AI\Cube.cs" />
      <Compile Include="Assets\Scripts\AI\CubeAreaDetection.cs" />
      <Compile Include="Assets\Scripts\AI\CubeCleanUp.cs" />
+     <Compile Include="Assets\Scripts\AI\CubeCombat.cs" />
      <Compile Include="Assets\Scripts\AI\CubeController.cs" />
+     <Compile Include="Assets\Scripts\AI\CubeMovement.cs" />
+     <Compile Include="Assets\Scripts\AI\CubePool.cs" />
+     <Compile Include="Assets\Scripts\AI\Old\BasicFollow.cs" />
+     <Compile Include="Assets\Scripts\AI\Old\BasicMove.cs" />
+     <Compile Include="Assets\Scripts\AI\TeamSetup.cs" />
      <Compile Include="Assets\Scripts\Lasers\Laser.cs" />
+     <Compile Include="Assets\Scripts\MapBounds.cs" />
      <Compile Include="Assets\Scripts\Player Controller\CameraControl.cs" />
      <Compile Include="Assets\Scripts\Player Controller\UnitControl.cs" />
      <None Include="Assets\Standard Assets\Effects\GlassRefraction\Shaders\GlassStainedBumpDistort.shader" />

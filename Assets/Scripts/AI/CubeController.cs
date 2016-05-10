@@ -22,6 +22,7 @@ public class CubeController : MonoBehaviour
 
     void Start(){
         mask = ~(1 << 8);
+        Physics.IgnoreLayerCollision(9,10);
     }
     // Update is called once per frame
     void Update()
