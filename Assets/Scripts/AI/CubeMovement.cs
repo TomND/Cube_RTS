@@ -25,8 +25,8 @@ public class CubeMovement : MonoBehaviour
    }
 
    public void GetTarget(Vector3 targ)
-   {
-      target = targ;
+    {
+        target = targ;
     }
 
 	 public float GetTargetDistance(){

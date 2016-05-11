@@ -13,10 +13,10 @@ public class MapBounds : MonoBehaviour {
    }
 
    void OnTriggerExit(Collider other)
-    {
-		 if(other.GetType() == typeof(BoxCollider)){//TODO: make add to pool instead of destroy
-			 //CubePool.AddToPool(other.gameObject);
-			 Destroy(other.gameObject);
-		 }
+   {
+      if(other.GetType() == typeof(BoxCollider)){           //TODO: make add to pool instead of destroy
+         //CubePool.AddToPool(other.gameObject);
+         CubePool.AddToPool(other.gameObject);
+         }
    }
 }

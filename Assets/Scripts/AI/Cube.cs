@@ -30,23 +30,22 @@ public class Cube : MonoBehaviour
    public int                teamNumber;
    public float              health;
    private CubeMovement      cubeMovement;
-   private CubeCombat        CubeCombat;
-    private List<GameObject> subCubes = new List<GameObject>();
-    public bool boom;
+   private CubeCombat        cubeCombat;
+   private List <GameObject> subCubes = new List <GameObject>();
+   public bool               boom;
 
-    // Use this for initialization
-    void Start()
+   // Use this for initialization
+   void Start()
    {
       cubeMovement = GetComponent <CubeMovement>();
-      CubeCombat   = GetComponent <CubeCombat>();
+      cubeCombat   = GetComponent <CubeCombat>();
    }
 
    // Update is called once per frame
    void FixedUpdate()
    {
-        ManageGoals();
+      ManageGoals();
    }
-
 
    public int GetTeamNumber()
    {
@@ -60,16 +59,16 @@ public class Cube : MonoBehaviour
       teamNumber = t;
    }
 
-   void GetSubCubes()
+   public void GetSubCubes(int subCount)
    {
       subCubes = new List <GameObject>();
-      for(int i = 0; i < 8; i++){
+      for(int i = 0; i < subCount; i++){
           subCubes.Add(CubePool.RemoveFromPool());
           }
       //gameObject.SetActive(false);
    }
 
-   void PrepSubCubesDefaults()
+   public void PrepSubCubesDefaults(bool laser = false)
    {
       foreach(GameObject sub in subCubes){
           sub.GetComponent <BoxCollider>().enabled  = true;
@@ -78,12 +77,14 @@ public class Cube : MonoBehaviour
           c.health = 100;     // TODO: Make this into a method
           c.SetTeamNumber(GetTeamNumber());
           sub.GetComponent <MeshRenderer>().material = gameObject.GetComponent <MeshRenderer>().material;
+
+
           sub.GetComponent <CubeCombat>().SetupRadius();
           sub.transform.localScale = gameObject.transform.localScale / 2;
           }
    }
 
-   void PrepDeathSubCube()
+   public void PrepDeathSubCube()
    {
       foreach(GameObject sub in subCubes){
           foreach(MonoBehaviour mono in sub.GetComponents <MonoBehaviour>()){
@@ -98,7 +99,7 @@ public class Cube : MonoBehaviour
           }
    }
 
-   void PrepRegularSubCube()
+   public void PrepRegularSubCube()
    {
       foreach(GameObject sub in subCubes){
           foreach(MonoBehaviour mono in sub.GetComponents <MonoBehaviour>()){
@@ -107,10 +108,11 @@ public class Cube : MonoBehaviour
           sub.layer = 10;
           sub.tag   = "Unit";
           sub.GetComponent <CubeCleanUp>().enabled = false;
+          sub.GetComponentInChildren <SphereCollider>().enabled = true;
           }
    }
 
-   void PositionSubCubes(float pos)
+   public void PositionSubCubes(float pos)
    {
       subCubes[0].transform.position = transform.position + new Vector3(pos, pos, pos);
       subCubes[1].transform.position = transform.position + new Vector3(pos, -pos, pos);
@@ -122,7 +124,7 @@ public class Cube : MonoBehaviour
       subCubes[7].transform.position = transform.position + new Vector3(-pos, -pos, -pos);
    }
 
-   void EnableSubCubes()
+   public void EnableSubCubes()
    {
       foreach(GameObject sub in subCubes){
           if(sub.tag == "Unit"){
@@ -136,11 +138,23 @@ public class Cube : MonoBehaviour
           }
    }
 
-   void GiveSubsVelocity(Vector3 vel = default(Vector3))
+   public void GiveSubsVelocity(Vector3 vel = default(Vector3))
    {
       foreach(GameObject sub in subCubes){
           sub.GetComponent <Rigidbody>().AddForce(vel * 10);
           //cube.GetComponent<Cube>().teamNumber = teamNumber;
+          }
+   }
+
+   void GiveSubsTarger()
+   {
+      foreach(GameObject sub in subCubes){
+          if(cubeCombat.GetShootTarget() != null){
+             //sub.GetComponent <Cube>().SetUnitTarget(cubeCombat.GetShootTarget());
+
+             cubeMovement.GetTarget(targetObject.transform.position);
+             cubeCombat.SetShootTarget(targetObject);
+             }
           }
    }
 
@@ -150,7 +164,7 @@ public class Cube : MonoBehaviour
       gameObject.GetComponent <MeshRenderer>().enabled = false;
       float   newScale       = transform.localScale.x / 2;
       Vector3 newVectorScale = transform.localScale / 2;
-      GetSubCubes();
+      GetSubCubes(8);
       PrepSubCubesDefaults();
       if(newScale < 1){
          PrepDeathSubCube();
@@ -160,8 +174,9 @@ public class Cube : MonoBehaviour
           }
       PositionSubCubes(newScale);
       EnableSubCubes();
-      CubePool.AddToPool(gameObject);
       GiveSubsVelocity(vel);
+      GiveSubsTarger();
+      CubePool.AddToPool(gameObject);
    }
 
    void DeathOld(Vector3 vel = default(Vector3))
@@ -226,8 +241,8 @@ public class Cube : MonoBehaviour
        */
 
       targetObject = tarObj;
-      cubeMovement.GetTarget(tarObj.transform.position);
-      CubeCombat.SetShootTarget(targetObject);
+      cubeMovement.GetTarget(targetObject.transform.position);
+      cubeCombat.SetShootTarget(targetObject);
    }
 
    public void SetFloorTarget(GameObject tarObj, Vector3 tarVec)
@@ -273,7 +288,7 @@ public class Cube : MonoBehaviour
 
       if(targetObject != null){
          if(TargetIsUnit(targetObject)){
-            if(DistanceToTarget(targetObject) > CubeCombat.GetShootDistance()){
+            if(DistanceToTarget(targetObject) > cubeCombat.GetShootDistance()){
                cubeMovement.Move();
                }
             }
@@ -288,7 +303,7 @@ public class Cube : MonoBehaviour
           */
 
 
-         CubeCombat.ManageCombat();
+         cubeCombat.ManageCombat();
          }
    }
 
