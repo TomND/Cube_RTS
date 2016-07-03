@@ -8,9 +8,9 @@ public class CubeAreaDetection : MonoBehaviour
    CubeCombat                cubeCombat;
    public float              targetCheckRate;
    private float             currentTime = 0;
-    private List<GameObject> enemies = new List<GameObject>();
+    public List<GameObject> enemies = new List<GameObject>();
     private SphereCollider sphere;
-
+    public LiveUnitManager unitManager;
     // Use this for initialization
     void Start()
    {
@@ -23,8 +23,31 @@ public class CubeAreaDetection : MonoBehaviour
    // Update is called once per frame
    void Update()
    {
-      ManageEnemies();
+        if(enemies.Count <= 0)
+        {
+            UpdateEnemies();
+        }
+        
+        ManageEnemies();
+        
    }
+
+    void UpdateEnemies()
+    {
+        if(unitManager == null)
+        {
+            return;
+        }
+        if(cube.teamNumber == 0)
+        {
+
+            enemies = unitManager.team1Units;
+        }
+        else if(cube.teamNumber == 1)
+        {
+            enemies = unitManager.team0Units;
+        }
+    }
 
    void ManageEnemies()
    {

@@ -33,6 +33,7 @@ public class Cube : MonoBehaviour
    private CubeCombat        cubeCombat;
    private List <GameObject> subCubes = new List <GameObject>();
    public bool               boom;
+    
 
    // Use this for initialization
    void Start()
